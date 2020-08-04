@@ -28,6 +28,10 @@ Options:
                          Available: "Rotate:<degrees>" 
 ```
 
+#### Demo
+
+![panel test demo](img/panel-test-demo.gif)
+
 ## Acknowledgements
 
 * Henner Zeller ([hzeller/rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix))
