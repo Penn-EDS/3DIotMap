@@ -76,9 +76,9 @@ int main(int argc, char *argv[]) {
   if (canvas == NULL)
     return 1;
 
-  const char *font_file = "./6x12.bdf";
+  const char *font_file = "fonts/6x12.bdf";
   if (!font.LoadFont(font_file)) {
-    fprintf(stderr, "Could not load font: %s\n", font_file);
+    fprintf(stderr, "Failed to load font: '%s'\n", font_file);
     return 1;
   }
   
