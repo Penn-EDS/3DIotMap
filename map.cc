@@ -36,11 +36,16 @@ int main(int argc, char *argv[])  {
     const int LNG_COL_INDEX = 9;
     const int LAT_COL_INDEX = 8;
 
-    // Minimum and maximum longitudes and latitudes to display.
-    const float MIN_LNG = -124.8228;
-    const float MAX_LNG = -69.6276;
-    const float MIN_LAT = 26.2482; 
-    const float MAX_LAT = 49.2335; 
+    // Use a hardcoded affine matrix for now.
+    // This matrix was found by assuming the following transformations were desired:
+    //     <city>, <state>  (    <lng>,   <lng>)  -->  (<x>, <y>)
+    //     Seattle, WA      (-122.3244, 47.6211)  -->  ( 10,  10)
+    //     El Paso, TX      (-106.4309, 31.8479)  -->  ( 60,  40)
+    //     Portland, ME     ( -70.2715, 43.6773)  -->  (110,  10)
+
+    float affine[6][1] = {
+        {1.81988}, {-1.33616}, {296.24636}, {-0.15601}, {-2.05916}, {88.97542}
+    };
 
     if (!cities_db_file.is_open()) {
         fprintf(stderr, "Error opening cities database CSV.\n");
@@ -65,16 +70,35 @@ int main(int argc, char *argv[])  {
         float lng = atof(lngStr.c_str());
         float lat = atof(latStr.c_str());
 
-        // Map lng and lat from old ranges (MIN_LNG..MAX_LNG and MIN_LAT..MAX_LAT) 
-        // to new ranges (0..matrix->width() and 0..matrix->height()).
-        float x = matrix->width() * (lng - MIN_LNG) / (MAX_LNG - MIN_LNG);
-        float y = matrix->height() * (lat - MIN_LAT) / (MAX_LAT - MIN_LAT);
+        // Transform spherical coordinates into planar coordinates.
+        // The plate carrée projection simply maps x to be the value of the longitude 
+        // and y to be the value of the latitude.
+        float x = lng;
+        float y = lat;
         
-        // Flip vertical.
-        y = (matrix->height() - y);
+        // Transform planar coordinates into matrix coordinates using affine matrix.
+        // This requires some matrix multiplication.
+        float transformed[2][1] = {
+            {0},
+            {0}
+        };
+        float to_transform[2][6] = {
+            {x, y, 1, 0, 0, 0},
+            {0, 0, 0, x, y, 1}
+        };
+        int to_transform_rows = sizeof(to_transform) / sizeof(to_transform[0]);
+        int to_transform_cols = sizeof(to_transform[0]) / sizeof(to_transform[0][0]);
+        int affine_cols = sizeof(affine[0]) / sizeof(affine[0][0]);
+        for(int i = 0; i < to_transform_rows; ++i)
+            for(int j = 0; j < affine_cols; ++j)
+                for(int k = 0; k < to_transform_cols; ++k)
+                    transformed[i][j] += to_transform[i][k] * affine[k][j];
+        x = transformed[0][0];
+        y = transformed[0][1];
 
-        matrix->SetPixel(x, y, 255, 0, 0);    
+        matrix->SetPixel(x, y, 255, 0, 255);    
     }
+    cout << "Viewing map..." << endl;
     sleep(5);
     matrix->Clear();
 }
