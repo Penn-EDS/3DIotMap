@@ -23,6 +23,29 @@ struct Color {
   uint8_t b;
 };
 
+// 2014 Material Design color palette: https://material.io/design/color
+const Color COLOR_BLACK(0, 0, 0);
+const Color COLOR_WHITE(255, 255, 255);
+const Color COLOR_RED(244, 67, 54);
+const Color COLOR_PINK(233, 30, 99);
+const Color COLOR_PURPLE(156, 39, 176);
+const Color COLOR_DEEP_PURPLE(103, 58, 183);
+const Color COLOR_INDIGO(63, 81, 181);
+const Color COLOR_BLUE(33, 150, 243);
+const Color COLOR_LIGHT_BLUE(3, 169, 244);
+const Color COLOR_CYAN(0, 188, 212);
+const Color COLOR_TEAL(0, 150, 136);
+const Color COLOR_GREEN(76, 175, 80);
+const Color COLOR_LIGHT_GREEN(139, 195, 74);
+const Color COLOR_LIME(205, 220, 57);
+const Color COLOR_YELLOW(255, 235, 59);
+const Color COLOR_AMBER(255, 193, 7);
+const Color COLOR_ORANGE(255, 152, 0);
+const Color COLOR_DEEP_ORANGE(255, 97, 34);
+const Color COLOR_BROWN(121, 85, 72);
+const Color COLOR_GRAY(158, 158, 158);
+const Color COLOR_BLUE_GRAY(96, 125, 139);
+
 // Font loading bdf files. If this ever becomes more types, just make virtual
 // base class.
 class Font {
