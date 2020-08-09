@@ -1,5 +1,7 @@
 #include "led-matrix.h"
 
+#include <Eigen/Dense>
+
 #include <cmath>
 #include <ctgmath>
 #include <fstream>
@@ -23,6 +25,7 @@ string substringAtIndex(string line, int index, char delimiter) {
 
 int main(int argc, char *argv[])  {
     RGBMatrix::Options matrix_options;
+    ifstream cities_db_file;
   
     RGBMatrix *matrix = CreateMatrixFromFlags(&argc, &argv, &matrix_options);
     if (matrix == NULL)
@@ -30,27 +33,41 @@ int main(int argc, char *argv[])  {
 
     // Open SimpleMaps US cities database CSV.
     string cities_db_filename = "uscities.csv";
-    ifstream cities_db_file;
     cities_db_file.open(cities_db_filename);
-
-    const int LNG_COL_INDEX = 9;
-    const int LAT_COL_INDEX = 8;
-
-    // Use a hardcoded affine matrix for now.
-    // This matrix was found by assuming the following transformations were desired:
-    //     <city>, <state>  (    <lng>,   <lng>)  -->  (<x>, <y>)
-    //     Seattle, WA      (-122.3244, 47.6211)  -->  ( 10,  10)
-    //     El Paso, TX      (-106.4309, 31.8479)  -->  ( 60,  40)
-    //     Portland, ME     ( -70.2715, 43.6773)  -->  (110,  10)
-
-    float affine[6][1] = {
-        {1.81988}, {-1.33616}, {296.24636}, {-0.15601}, {-2.05916}, {88.97542}
-    };
-
     if (!cities_db_file.is_open()) {
         fprintf(stderr, "Error opening cities database CSV.\n");
         return 1;
     }
+
+    // Use hardcoded reference cities for now.
+ 
+    // Seattle, WA
+    float lng1 = -122.3244, lat1 = 47.6211;
+    int x1 = 10, y1 = 10;
+
+    // El Paso, TX
+    float lng2 = -106.4309, lat2 = 31.8479;
+    int x2 = 60, y2 = 40;
+
+    // Portland, ME
+    float lng3 = -70.2715, lat3 = 43.6773;
+    int x3 = 110, y3 = 10;
+
+    // Find the affine transformation required to get from (<lng>, <lng>) to (<x>, <y>).
+    Eigen::MatrixXf A(6, 6);
+    A << 
+        lng1, lat1, 1, 0, 0, 0,
+        0, 0, 0, lng1, lat1, 1,
+        lng2, lat2, 1, 0, 0, 0,
+        0, 0, 0, lng2, lat2, 1,
+        lng3, lat3, 1, 0, 0, 0,
+        0, 0, 0, lng3, lat3, 1;
+    Eigen::MatrixXf A_prime(6, 1);
+    A_prime << x1, y1, x2, y2, x3, y3;
+    Eigen::MatrixXf trans = A.inverse() * A_prime;
+
+    const int LNG_COL_INDEX = 9;
+    const int LAT_COL_INDEX = 8;
 
     string row_line;
 
@@ -73,30 +90,19 @@ int main(int argc, char *argv[])  {
         // Transform spherical coordinates into planar coordinates.
         // The plate carrée projection simply maps x to be the value of the longitude 
         // and y to be the value of the latitude.
-        float x = lng;
-        float y = lat;
+        float planar_x = lng;
+        float planar_y = lat;
         
-        // Transform planar coordinates into matrix coordinates using affine matrix.
-        // This requires some matrix multiplication.
-        float transformed[2][1] = {
-            {0},
-            {0}
-        };
-        float to_transform[2][6] = {
-            {x, y, 1, 0, 0, 0},
-            {0, 0, 0, x, y, 1}
-        };
-        int to_transform_rows = sizeof(to_transform) / sizeof(to_transform[0]);
-        int to_transform_cols = sizeof(to_transform[0]) / sizeof(to_transform[0][0]);
-        int affine_cols = sizeof(affine[0]) / sizeof(affine[0][0]);
-        for(int i = 0; i < to_transform_rows; ++i)
-            for(int j = 0; j < affine_cols; ++j)
-                for(int k = 0; k < to_transform_cols; ++k)
-                    transformed[i][j] += to_transform[i][k] * affine[k][j];
-        x = transformed[0][0];
-        y = transformed[0][1];
+        // Transform planar coordinates into matrix coordinates.
+        Eigen::MatrixXf B(2, 6);
+        B <<
+            planar_x, planar_y, 1, 0, 0, 0,
+            0, 0, 0, planar_x, planar_y, 1;
+        Eigen::MatrixXf B_prime = B * trans;
+        int matrix_x = int(B_prime(0, 0));
+        int matrix_y = int(B_prime(1, 0));
 
-        matrix->SetPixel(x, y, 255, 0, 255);    
+        matrix->SetPixel(matrix_x, matrix_y, 255, 0, 255);    
     }
     cout << "Viewing map..." << endl;
     sleep(5);
