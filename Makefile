@@ -29,7 +29,7 @@ map : map.o $(RGB_LIBRARY)
 
 
 %.o : %.cc
-	$(CXX) -I$(RGB_INCDIR) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) -I $(RGB_INCDIR) -I $(EIGEN) $(CXXFLAGS) -c -o $@ $<
 
 %.o : %.c
 	$(CC) -I$(RGB_INCDIR) $(CFLAGS) -c -o $@ $<
