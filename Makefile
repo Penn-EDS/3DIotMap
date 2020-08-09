@@ -1,7 +1,7 @@
 CFLAGS=-Wall -O3 -g -Wextra -Wno-unused-parameter
 CXXFLAGS=$(CFLAGS)
-OBJECTS=panel-test.o map.o
-BINARIES=panel-test map
+OBJECTS=panel-test.o map-viewer.o
+BINARIES=panel-test map-viewer
 
 # Where our library resides. You mostly only need to change the
 # RGB_LIB_DISTRIBUTION, this is where the library is checked out.
@@ -20,7 +20,7 @@ $(RGB_LIBRARY): FORCE
 panel-test : panel-test.o $(RGB_LIBRARY)
 	$(CXX) $< -o $@ $(LDFLAGS)
 
-map : map.o $(RGB_LIBRARY)
+map-viewer : map-viewer.o $(RGB_LIBRARY)
 	$(CXX) $< -o $@ $(LDFLAGS)
 
 # All the binaries that have the same name as the object file.q
