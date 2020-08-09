@@ -1,7 +1,7 @@
 #include "led-matrix.h"
 
 #include <Eigen/Dense>
-
+#include <graphics.h>
 #include <cmath>
 #include <ctgmath>
 #include <fstream>
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])  {
         int matrix_x = int(B_prime(0, 0));
         int matrix_y = int(B_prime(1, 0));
 
-        matrix->SetPixel(matrix_x, matrix_y, 255, 0, 255);    
+        matrix->SetPixel(matrix_x, matrix_y, COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b);    
     }
     cout << "Viewing map..." << endl;
     sleep(5);
