@@ -14,13 +14,13 @@
 using namespace std;
 using namespace rgb_matrix;
 
-// Returns substring from delimited string.
-string substringAtIndex(string line, int index, char delimiter) {
-    string substring;
+vector<string> tokenize_csv_line(string line) {
+    vector<string> tokens;
     stringstream line_stream(line);
-    for (int i = 0; line_stream.good() && i <= index; i++)
-        getline(line_stream, substring, delimiter);
-    return substring;
+    string token;
+    while (getline(line_stream, token, ','))
+        tokens.push_back(token);
+    return tokens;
 }
 
 int main(int argc, char *argv[])  {
@@ -77,8 +77,10 @@ int main(int argc, char *argv[])  {
     // Read remaining lines.
     while (getline(cities_db_file, row_line)) {
 
-        string lngStr = substringAtIndex(row_line, LNG_COL_INDEX, ',');
-        string latStr = substringAtIndex(row_line, LAT_COL_INDEX, ',');
+        vector<string> tokens = tokenize_csv_line(row_line);
+
+        string lngStr = tokens[LNG_COL_INDEX];
+        string latStr = tokens[LAT_COL_INDEX];
 
         // Remove surrounding quotation marks.
         lngStr = lngStr.substr(1, lngStr.size() - 2);
