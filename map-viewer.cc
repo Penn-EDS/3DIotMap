@@ -20,6 +20,9 @@ int main(int argc, char *argv[])  {
     const int LNG_COL_INDEX = 9;
     const int LAT_COL_INDEX = 8;
 
+    const Color BG_COLOR = COLOR_BLUE;
+    const Color FG_COLOR = COLOR_RED;
+
     RGBMatrix *matrix = CreateMatrixFromFlags(&argc, &argv);
     if (matrix == NULL)
         return 1;
@@ -87,8 +90,15 @@ int main(int argc, char *argv[])  {
         int matrix_x = int(B_prime(0, 0));
         int matrix_y = int(B_prime(1, 0));
 
-        matrix->SetPixel(matrix_x, matrix_y, COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b);    
+        // Display city in background color.
+        matrix->SetPixel(matrix_x, matrix_y, BG_COLOR.r, BG_COLOR.g, BG_COLOR.b);    
     }
+
+    // Display reference cities in foreground color.
+    matrix->SetPixel(x1, y1, FG_COLOR.r, FG_COLOR.g, FG_COLOR.b);
+    matrix->SetPixel(x2, y2, FG_COLOR.r, FG_COLOR.g, FG_COLOR.b);
+    matrix->SetPixel(x3, y3, FG_COLOR.r, FG_COLOR.g, FG_COLOR.b);
+
     int sleep_s = 5;
     cout << "Viewing map for " << sleep_s << " seconds..." << endl;
     sleep(sleep_s);
