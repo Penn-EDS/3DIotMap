@@ -14,46 +14,37 @@
 using namespace std;
 using namespace rgb_matrix;
 
-vector<string> tokenize_csv_line(string line) {
-    vector<string> tokens;
-    stringstream line_stream(line);
-    string token;
-    while (getline(line_stream, token, ','))
-        tokens.push_back(token);
-    return tokens;
-}
+vector<string> tokenize_csv_line(string line);
 
 int main(int argc, char *argv[])  {
-    RGBMatrix::Options matrix_options;
-    ifstream cities_db_file;
-  
-    RGBMatrix *matrix = CreateMatrixFromFlags(&argc, &argv, &matrix_options);
+    const int LNG_COL_INDEX = 9;
+    const int LAT_COL_INDEX = 8;
+
+    RGBMatrix *matrix = CreateMatrixFromFlags(&argc, &argv);
     if (matrix == NULL)
         return 1;
 
     // Open SimpleMaps US cities database CSV.
     string cities_db_filename = "uscities.csv";
-    cities_db_file.open(cities_db_filename);
-    if (!cities_db_file.is_open()) {
-        fprintf(stderr, "Error opening cities database CSV.\n");
+    ifstream cities_db(cities_db_filename);
+    if (!cities_db.is_open()) {
+        cout << "Error opening: '" << cities_db_filename << "'" << endl;
         return 1;
     }
 
-    // Use hardcoded reference cities for now.
- 
-    // Seattle, WA
+    // Reference city 1: Seattle, WA
     float lng1 = -122.3244, lat1 = 47.6211;
     int x1 = 10, y1 = 10;
 
-    // El Paso, TX
+    // Reference city 2: El Paso, TX
     float lng2 = -106.4309, lat2 = 31.8479;
-    int x2 = 60, y2 = 40;
+    int x2 = 60, y2 = 50;
 
-    // Portland, ME
+    // Reference city 3: Portland, ME
     float lng3 = -70.2715, lat3 = 43.6773;
     int x3 = 110, y3 = 10;
 
-    // Find the affine transformation required to get from (<lng>, <lng>) to (<x>, <y>).
+    // Find the transformation required to get from (<lng>, <lng>) to (<x>, <y>).
     Eigen::MatrixXf A(6, 6);
     A << 
         lng1, lat1, 1, 0, 0, 0,
@@ -66,25 +57,17 @@ int main(int argc, char *argv[])  {
     A_prime << x1, y1, x2, y2, x3, y3;
     Eigen::MatrixXf trans = A.inverse() * A_prime;
 
-    const int LNG_COL_INDEX = 9;
-    const int LAT_COL_INDEX = 8;
-
-    string row_line;
+    string line;
 
     // Skip first line (row) with column names.
-    getline(cities_db_file, row_line);
+    getline(cities_db, line);
 
-    // Read remaining lines.
-    while (getline(cities_db_file, row_line)) {
+    while (getline(cities_db, line)) {
 
-        vector<string> tokens = tokenize_csv_line(row_line);
+        vector<string> tokens = tokenize_csv_line(line);
 
         string lngStr = tokens[LNG_COL_INDEX];
         string latStr = tokens[LAT_COL_INDEX];
-
-        // Remove surrounding quotation marks.
-        lngStr = lngStr.substr(1, lngStr.size() - 2);
-        latStr = latStr.substr(1, latStr.size() - 2);
 
         float lng = atof(lngStr.c_str());
         float lat = atof(latStr.c_str());
@@ -106,7 +89,23 @@ int main(int argc, char *argv[])  {
 
         matrix->SetPixel(matrix_x, matrix_y, COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b);    
     }
-    cout << "Viewing map..." << endl;
-    sleep(5);
+    int sleep_s = 5;
+    cout << "Viewing map for " << sleep_s << " seconds..." << endl;
+    sleep(sleep_s);
+
     matrix->Clear();
+}
+
+vector<string> tokenize_csv_line(string line) {
+    vector<string> tokens;
+    stringstream line_stream(line);
+    string token;
+    while (getline(line_stream, token, ',')) {
+        
+        // Remove surrounding quotation marks.
+        token.erase(remove(token.begin(), token.end(), '\"'), token.end());
+        
+        tokens.push_back(token);
+    }
+    return tokens;
 }
