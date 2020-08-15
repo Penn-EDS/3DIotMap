@@ -6,16 +6,20 @@
 
 #include <fstream>
 #include <iostream>
+#include <signal.h>
 #include <unistd.h>
 
 using namespace std;
 using namespace rgb_matrix;
 
 vector<string> tokenize_csv_line(string line);
+static void interrupt_handler(int signal);
 static void print_usage(const char *prog_name);
 static void transform_coords(vector<City> *all_cities, vector<City> *ref_cities);
 static vector<City> get_all_cities();
 static vector<City> get_ref_cities(vector<City> *all_cities, string ref_string);
+
+volatile bool interrupt_received = false;
 
 int main(int argc, char *argv[])  {
     const Color BG_COLOR = COLOR_GREEN;
@@ -56,9 +60,14 @@ int main(int argc, char *argv[])  {
     for(const auto& city: ref_cities)
         matrix->SetPixel(city.x, city.y, FG_COLOR.r, FG_COLOR.g, FG_COLOR.b);
 
-    int sleep_s = 10;
-    cout << "Viewing map for " << sleep_s << " seconds." << endl;
-    sleep(sleep_s);
+    cout << "Viewing map." << endl;
+
+    signal(SIGINT, interrupt_handler);
+    cout << "Press Ctrl+C to exit." << endl;
+    do {
+        // Update here.
+    } while (!interrupt_received);
+    cout << endl;
 
     matrix->Clear();
 }
@@ -179,4 +188,8 @@ vector<City> get_ref_cities(vector<City> *all_cities, string ref_string) {
     }
 
     return ref_cities;
+}
+
+static void interrupt_handler(int signal) {
+    interrupt_received = true;
 }
