@@ -3,7 +3,6 @@
 #include "city.h"
 
 #include <Eigen/Dense>
-
 #include <fstream>
 #include <iostream>
 #include <signal.h>
@@ -22,8 +21,6 @@ static vector<City> get_ref_cities(vector<City> *all_cities, string ref_string);
 volatile bool interrupt_received = false;
 
 int main(int argc, char *argv[])  {
-    const Color BG_COLOR = COLOR_GREEN;
-    const Color FG_COLOR = COLOR_RED;
 
     RGBMatrix *matrix = CreateMatrixFromFlags(&argc, &argv);
     if (matrix == NULL)
@@ -43,27 +40,75 @@ int main(int argc, char *argv[])  {
         }
     }
 
-    cout << "Getting all cities. This might take a minute." << endl;
+    cout << "[1/5] Creating all cities. This might take a minute." << endl;
     vector<City> all_cities = get_all_cities();
 
-    cout << "Getting reference cities." << endl;
+    cout << "[2/5] Creating reference cities." << endl;
     vector<City> ref_cities = get_ref_cities(&all_cities, ref_cities_string);
 
-    cout << "Transforming coordinates." << endl;
+    cout << "[3/5] Transforming coordinates." << endl;
     transform_coords(&all_cities, &ref_cities);
 
-    // Display all cities in background color.
-    for(const auto& city: all_cities)
-        matrix->SetPixel(city.x, city.y, BG_COLOR.r, BG_COLOR.g, BG_COLOR.b);
+    cout << "[4/5] Reading states stats." << endl;
 
-    // Display reference cities in foreground color.
+    string line;
+    ifstream line_stream("daily.csv");
+    if (!line_stream.is_open()) {
+        cerr << "Error opening states CSV." << endl;
+        return 1;
+    }
+
+    const string DATE_SELECTION = "20200814";
+    map<string, unsigned int> statePositive;
+    unsigned int positive_min = LONG_MAX;
+    unsigned int positive_max = 0;
+
+    getline(line_stream, line); // Skip the first line with column names.
+
+    while (getline(line_stream, line)) {
+        vector<string> tokens = tokenize_csv_line(line);
+        
+        // Skip if no match.
+        string date = tokens[0];
+        if (DATE_SELECTION.compare(date))
+            continue;
+        
+        string name = tokens[1];
+        unsigned int positive = stol(tokens[2]);
+        
+        statePositive[name] = positive;
+
+        positive_min = min(positive_min, positive);
+        positive_max = max(positive_max, positive);
+    }
+
+    cout << "[5/5] Displaying map." << endl;
+    for(const auto& city: all_cities) {
+
+        unsigned char red_min = 1;
+        unsigned char red_max = 255;
+
+        long int positive = statePositive[city.state];
+        
+        // Remap number of positive from linear scale (positive_min .. positive_max)
+        // to logarithmic scale (red_min .. red_max).
+        float lin_min = positive_max;
+        float lin_max = positive_min;
+        float log_min = red_min;
+        float log_max = red_max;
+        float b = log(log_min / log_max) / (lin_min - lin_max);
+        float a = log_min / exp(b * lin_min);
+        int red = red_max - a * exp(b * positive);
+
+        matrix->SetPixel(city.x, city.y, red, 0, 0);
+    }
+
+    // Display reference cities in a different color.
     for(const auto& city: ref_cities)
-        matrix->SetPixel(city.x, city.y, FG_COLOR.r, FG_COLOR.g, FG_COLOR.b);
-
-    cout << "Viewing map." << endl;
+        matrix->SetPixel(city.x, city.y, COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b);
 
     signal(SIGINT, interrupt_handler);
-    cout << "Press Ctrl+C to exit." << endl;
+    cout << "Done. Press Ctrl+C to exit." << endl;
     do {
         // Update here.
     } while (!interrupt_received);
