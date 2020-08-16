@@ -1,16 +1,21 @@
-## About
+# 3DIotMap
 
-This US map will be a 3D printed topological projection of the entire United States. Use a grid of LEDs in series which will be programmed to light up in specific locations in accordance with the data from the Health Language Processing Lab.
+US data visualization using a 3D printed topological map and LED matrices.
 
 ## Map Viewer
 
-Displays US cities using LED matrix coordinates of three cities as reference. Reference cities are displayed in red, all others are displayed in blue.
+The map viewer displays a US COVID-19 heat map. Cities are displayed in red;
+their intensity depends on the number of positive cases in the state they
+reside in. The map can be transformed by supplying the LED matrix coordinates
+of three reference cities, displayed in blue.
 
 ### Building
 
-The map viewer requires the [Eigen library](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix transformations. To "install" Eigen, download and extract its source code to any directory. Here I'm using the Downloads directory.
+The map viewer requires the
+[Eigen library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
+To "install" Eigen, download and extract its source.
 
-```
+```bash
 cd ~/Downloads
 
 wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
@@ -18,56 +23,53 @@ wget https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
 tar -xf eigen-3.3.7.tar.bz2
 ```
 
-After extracting you should see a directory named `eigen-3.3.7` or similar. When you run `make`, use the directory's path for the `EIGEN` variable.
+When you run `make`, use the directory's path for the `EIGEN` variable.
 
-```
+``` bash
 make map-viewer EIGEN="~Downloads/eigen-3.3.7/"
 ```
 
 ### Usage
 
-```
-Usage: sudo ./map-viewer [options]
-    Display US cities using LED matrix coordinates of three cities as reference.
+```bash
+sudo ./map-viewer [options]
 
 Options:
-    -r <string>        : Comma-separated reference string with format,
-                         "<city1>,<state1>,<x1>,<y1>,<city2>,<state2>,<x2>,<y2>,<city3>,<state3>,<x3>,<y3>"
+    --ref-string <str> : Comma-separated reference string with format,
+        "<city1>,<st1>,<x1>,<y1>,<city2>,<st2>,<x2>,<y2>,<city3>,<st3>,<x3>,<y3>"
+        (default="Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51")
     --led-cols         : Number of columns in one panel (default=32).
     --led-rows         : Number of rows in one panel (default=32).
     --led-chain        : Number of daisy-chained panels (default=1).
     --led-parallel     : Number of parallel chains (range=1..3, default=1).
 ```
 
-### Notes
-
-Currently the `-r` option does not have a default value, so it is required. The LED matrix coordinates should follow standard display coordinates such that the top left pixel is the origin.
-
-![axes](img/axes.png)
-
+The LED matrix coordinate system has the top left pixel at the origin; the
+x-axis points from left to right and the Y axis points from top to bottom.
 
 ### Demo
 
-```
-sudo ./map-viewer --led-cols 64 --led-rows 64 --led-chain 2 -r "Seattle,WA,10,10,El Paso,TX,60,50,Portland,ME,110,10"
+```bash
+sudo ./map-viewer --led-cols 64 --led-rows 64 --led-chain 2
+--ref-string "Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51"
 ```
 
 ![map viewer demo](img/map-viewer-demo.jpg)
 
-
 ## Panel Test
 
-Cycles colors and displays column and row numbers on panels.
+The panel test cycles colors and displays column and row numbers on all panels,
+one at a time.
 
 ### Building
 
-```
+```bash
 make panel-test
 ```
 
 ### Usage
 
-```
+```bash
 sudo ./panel-test [options]
 
 Options:
@@ -75,16 +77,24 @@ Options:
     --led-rows         : Number of rows in one panel (default=32).
     --led-chain        : Number of daisy-chained panels (default=1).
     --led-parallel     : Number of parallel chains (range=1..3, default=1).
-    --led-pixel-mapper : Semicolon-separated list of pixel-mappers to arrange pixels. 
-                         Available: "Rotate:<degrees>" 
+    --led-pixel-mapper : Semicolon-separated list of pixel-mappers to arrange
+                         pixels.
+                         Available: "Rotate:<degrees>"
 ```
 
 ### Demo
+
+```bash
+sudo ./panel-test --led-cols 64 --led-rows 64 --led-chain 2
+```
 
 ![panel test demo](img/panel-test-demo.gif)
 
 ## Acknowledgements
 
-* [Henner Zeller](https://github.com/hzeller/rpi-rgb-led-matrix) - Raspberry Pi LED Matrix library
-* [SimpleMaps](https://simplemaps.com/data/us-cities) - US cities database
-* [The COVID Tracking Project](https://covidtracking.com/data/download) - COVID-19 state data
+* [Henner Zeller](https://github.com/hzeller/rpi-rgb-led-matrix) -
+Raspberry Pi LED Matrix library
+* [SimpleMaps](https://simplemaps.com/data/us-cities) -
+US cities database
+* [The COVID Tracking Project](https://covidtracking.com/data/download) -
+COVID-19 state data
