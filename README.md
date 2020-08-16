@@ -8,7 +8,7 @@ Displays US cities using LED matrix coordinates of three cities as reference. Re
 
 ### Building
 
-The map viewer requires the Eigen library for matrix transformations. To "install" Eigen, download and extract its source code to any directory. Here I'm using the Downloads directory.
+The map viewer requires the [Eigen library](http://eigen.tuxfamily.org/index.php?title=Main_Page) for matrix transformations. To "install" Eigen, download and extract its source code to any directory. Here I'm using the Downloads directory.
 
 ```
 cd ~/Downloads
@@ -85,6 +85,6 @@ Options:
 
 ## Acknowledgements
 
-* Henner Zeller ([hzeller/rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix))
-* Eigen ([homepage](http://eigen.tuxfamily.org/index.php?title=Main_Page))
-* SimpleMaps ([homepage](https://simplemaps.com/data/us-cities))
+* [Henner Zeller](https://github.com/hzeller/rpi-rgb-led-matrix) - Raspberry Pi LED Matrix library
+* [SimpleMaps](https://simplemaps.com/data/us-cities) - US cities database
+* [The COVID Tracking Project](https://covidtracking.com/data/download) - COVID-19 state data
