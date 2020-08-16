@@ -1,9 +1,11 @@
+#include "city.h"
 #include "graphics.h"
 #include "led-matrix.h"
-#include "city.h"
 
 #include <Eigen/Dense>
+
 #include <fstream>
+#include <getopt.h>
 #include <iostream>
 #include <signal.h>
 #include <unistd.h>
@@ -14,7 +16,8 @@ using namespace rgb_matrix;
 vector<string> tokenize_csv_line(string line);
 static void interrupt_handler(int signal);
 static void print_usage(const char *prog_name);
-static void transform_coords(vector<City> *all_cities, vector<City> *ref_cities);
+static void transform_coords(vector<City> *all_cities, 
+    vector<City> *ref_cities);
 static vector<City> get_all_cities();
 static vector<City> get_ref_cities(vector<City> *all_cities, string ref_string);
 
@@ -26,18 +29,29 @@ int main(int argc, char *argv[])  {
     if (matrix == NULL)
         return 1;
 
-    // Parse commmad line arguments.
-    string ref_cities_string;
-    int opt;
-    while ((opt = getopt(argc, argv, "r:")) != -1) {
+    string ref_cities_string = 
+        "Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51";
+
+    // Parse command-line options.
+    while (true) {
+        static struct option long_options[] = {
+            {"ref-string", required_argument, 0, 'r'},
+            {0, 0, 0, 0}
+        };
+        int option_index = 0;
+        int opt = getopt_long(argc, argv, "r:", long_options, &option_index);
+        if (opt == -1)
+            break;
         switch (opt) {
             case 'r':
                 ref_cities_string = optarg;
                 break;
-            default:
+            case '?':
                 print_usage(argv[0]);
+                // Fall through.
+            default:
                 return 1;
-        }
+            }
     }
 
     cout << "[1/5] Creating all cities. This might take a minute." << endl;
@@ -90,8 +104,9 @@ int main(int argc, char *argv[])  {
 
         long int positive = statePositive[city.state];
         
-        // Remap number of positive from linear scale (positive_min .. positive_max)
-        // to logarithmic scale (red_min .. red_max).
+        // Remap number of positive from linear scale 
+        // (positive_min .. positive_max) to logarithmic scale 
+        // (red_min .. red_max).
         float lin_min = positive_max;
         float lin_max = positive_min;
         float log_min = red_min;
@@ -105,7 +120,8 @@ int main(int argc, char *argv[])  {
 
     // Display reference cities in a different color.
     for(const auto& city: ref_cities)
-        matrix->SetPixel(city.x, city.y, COLOR_BLUE.r, COLOR_BLUE.g, COLOR_BLUE.b);
+        matrix->SetPixel(city.x, city.y, COLOR_BLUE.r, COLOR_BLUE.g, 
+            COLOR_BLUE.b);
 
     signal(SIGINT, interrupt_handler);
     cout << "Done. Press Ctrl+C to exit." << endl;
@@ -133,11 +149,18 @@ vector<string> tokenize_csv_line(string line) {
 
 static void print_usage(const char *prog_name) {
     cerr << "Usage: sudo " << prog_name << " [options]" << endl;
-    cerr << "\tDisplay US cities using matrix coordinates of three cities as reference." << endl;
+    cerr << "\tDisplays a US COVID-19 heat map." << endl;
+    cerr << "\tCities are displayed in red; their intensity depends on the numb"
+        "er of positive cases in the state they reside in. The map can be trans"
+        "formed by supplying the LED matrix coordinates of three reference citi"
+        "es, displayed in blue." << endl;
     cerr << "Options:" << endl;
-    cerr << "\t-r <string> : Comma-separated reference string with format," << endl;
-    cerr << "\t\t      \"<city1>,<state1>,<x1>,<y1>,<city2>,<state2>,<x2>,<y2>,<city3>,<state3>,<x3>,<y3>\"" << endl;
-    cerr << "\t\t      (default=\"Seattle,WA,10,10,El Paso,TX,60,50,Portland,ME,110,10\")" << endl;
+    cerr << "\t--ref-string <string> : Comma-separated reference string with fo"
+        "rmat," << endl;
+    cerr << "\t\t\"<city1>,<state1>,<x1>,<y1>,<city2>,<state2>,<x2>,<y2>,<city3"
+        ">,<state3>,<x3>,<y3>\"" << endl;
+    cerr << "\t\t(default=\"Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51\""
+        ")" << endl;
 }
 
 void transform_coords(vector<City> *all_cities, vector<City> *ref_cities) {
@@ -161,8 +184,8 @@ void transform_coords(vector<City> *all_cities, vector<City> *ref_cities) {
     vector<City>::iterator it;
     for(it = all_cities->begin(); it != all_cities->end(); it++) {
 
-        // Transform spherical coordinates into planar coordinates.
-        // The plate carrée projection simply maps x to be the value of the longitude 
+        // Transform spherical coordinates into planar coordinates. The plate 
+        // carrée projection simply maps x to be the value of the longitude 
         // and y to be the value of the latitude.
         float planar_x = (*it).lng;
         float planar_y = (*it).lat;
