@@ -27,7 +27,7 @@ tar -xf eigen-3.3.7.tar.bz2
 When you run `make`, use the directory's path for the `EIGEN` variable.
 
 ``` bash
-make map-viewer EIGEN="~Downloads/eigen-3.3.7/"
+make map-viewer EIGEN="~/Downloads/eigen-3.3.7/"
 ```
 
 ### Usage
