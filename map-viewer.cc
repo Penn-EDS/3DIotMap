@@ -99,29 +99,39 @@ int main(int argc, char *argv[])  {
     cout << "[5/5] Displaying map." << endl;
     for(const auto& city: all_cities) {
 
-        unsigned char red_min = 1;
-        unsigned char red_max = 255;
+        const Color COLOR_MIN = COLOR_YELLOW;
+        const Color COLOR_MAX = COLOR_RED;
 
         long int positive = statePositive[city.state];
         
-        // Remap number of positive from linear scale 
-        // (positive_min .. positive_max) to logarithmic scale 
-        // (red_min .. red_max).
-        float lin_min = positive_max;
-        float lin_max = positive_min;
-        float log_min = red_min;
-        float log_max = red_max;
-        float b = log(log_min / log_max) / (lin_min - lin_max);
-        float a = log_min / exp(b * lin_min);
-        int red = red_max - a * exp(b * positive);
+        // Map from logarithmic (positive_min..positive_max) range to
+        // (0..1) linear range.
+        float log_min = positive_min + 1; //  Avoid division by zero.
+        float log_max = positive_max + 1; //  Avoid division by zero.
+        float percent = (log(positive) - log(log_min))/(log(log_max) - log(log_min));
 
-        matrix->SetPixel(city.x, city.y, red, 0, 0);
+        // Map from (0..1) range to (COLOR_MIN.r..COLOR_MAX.r) range.
+        int r = (COLOR_MIN.r < COLOR_MAX.r) ? 
+            COLOR_MIN.r + abs(COLOR_MAX.r - COLOR_MIN.r) * percent : 
+            COLOR_MIN.r - abs(COLOR_MAX.r - COLOR_MIN.r) * percent;
+
+        // Map from (0..1) range to (COLOR_MIN.g..COLOR_MAX.g) range.
+        int g = (COLOR_MIN.g < COLOR_MAX.g) ? 
+            COLOR_MIN.g + abs(COLOR_MAX.g - COLOR_MIN.g) * percent : 
+            COLOR_MIN.g - abs(COLOR_MAX.g - COLOR_MIN.g) * percent;
+
+        // Map from (0..1) range to (COLOR_MIN.b..COLOR_MAX.b) range.
+        int b = (COLOR_MIN.b < COLOR_MAX.b) ? 
+            COLOR_MIN.b + abs(COLOR_MAX.b - COLOR_MIN.b) * percent : 
+            COLOR_MIN.b - abs(COLOR_MAX.b - COLOR_MIN.b) * percent;
+
+        matrix->SetPixel(city.x, city.y, r, g, b);
     }
 
     // Display reference cities in a different color.
     for(const auto& city: ref_cities)
-        matrix->SetPixel(city.x, city.y, COLOR_BLUE.r, COLOR_BLUE.g, 
-            COLOR_BLUE.b);
+        matrix->SetPixel(city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, 
+            COLOR_WHITE.b);
 
     signal(SIGINT, interrupt_handler);
     cout << "Done. Press Ctrl+C to exit." << endl;
@@ -149,11 +159,12 @@ vector<string> tokenize_csv_line(string line) {
 
 static void print_usage(const char *prog_name) {
     cerr << "Usage: sudo " << prog_name << " [options]" << endl;
-    cerr << "\tDisplays a US COVID-19 heat map." << endl;
-    cerr << "\tCities are displayed in red; their intensity depends on the numb"
-        "er of positive cases in the state they reside in. The map can be trans"
-        "formed by supplying the LED matrix coordinates of three reference citi"
-        "es, displayed in blue." << endl;
+    cerr << "\tDisplays a US COVID-19 heat map. The color of a city depends on "
+        "the number of positive cases of the state it resides in. The number of"
+        " positive cases is mapped from a logarithmic (min_positive_cases..max_"
+        "positive_cases) scale to a linear (yellow..red) scale. The map can be "
+        "transformed by supplying the LED matrix coordinates of three reference"
+        " cities, displayed in white." << endl;
     cerr << "Options:" << endl;
     cerr << "\t--ref-string <string> : Comma-separated reference string with fo"
         "rmat," << endl;

@@ -4,10 +4,11 @@ US data visualization using a 3D printed topological map and LED matrices.
 
 ## Map Viewer
 
-The map viewer displays a US COVID-19 heat map. Cities are displayed in red;
-their intensity depends on the number of positive cases in the state they
-reside in. The map can be transformed by supplying the LED matrix coordinates
-of three reference cities, displayed in blue.
+The map viewer displays a US COVID-19 heat map. The color of a city depends on
+the number of positive cases of the state it resides in. The number of positive
+cases is mapped from a logarithmic (min_positive_cases..max_positive_cases)
+scale to a linear (yellow..red) scale. The map can be transformed by supplying
+the LED matrix coordinates of three reference cities, displayed in white.
 
 ### Building
 
