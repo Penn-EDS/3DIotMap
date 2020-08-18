@@ -39,16 +39,16 @@ static void CyclePanels(RGBMatrix *matrix, RGBMatrix::Options *matrix_options) {
   for (int col = 0; col < panel_cols; col++) {
     for (int row = 0; row < panel_rows; row++) {
 
-      int upper_x = matrix_options->cols * col;
-      int upper_y = matrix_options->rows * row;
-      int lower_x = matrix_options->cols * col + matrix_options->cols - 1;
-      int lower_y = matrix_options->rows * row + matrix_options->rows - 1;
+      int lower_x = matrix_options->cols * col;
+      int upper_x = matrix_options->cols * col + matrix_options->cols - 1;
+      int lower_y = matrix_options->rows * row;
+      int upper_y = matrix_options->rows * row + matrix_options->rows - 1;
 
       // Display colors individually on panel.
       int n_colors = sizeof(colors) / sizeof(colors[0]);
       for (int i = 0; i < n_colors; i++) {
-        for (int x = upper_x; x <= lower_x; x++)
-          for (int y = upper_y; y <= lower_y; y++)
+        for (int x = lower_x; x <= upper_x; x++)
+          for (int y = lower_y; y <= upper_y; y++)
           matrix->SetPixel(x, y, colors[i].r, colors[i].g, colors[i].b);
 	      sleep(1);
       }
@@ -58,7 +58,7 @@ static void CyclePanels(RGBMatrix *matrix, RGBMatrix::Options *matrix_options) {
       // Display (<col>,<row>) on panel.
       char text[24];
       snprintf(text, sizeof(text), "(%d,%d)", col, row);
-      DrawText(matrix, font, upper_x, lower_y, color_white, &color_black, text);
+      DrawText(matrix, font, lower_x, lower_y + 10, color_white, &color_black, text);
       sleep(1);
 
       matrix->Clear();
