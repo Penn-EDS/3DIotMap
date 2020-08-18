@@ -59,8 +59,9 @@ sudo ./map-viewer --led-cols 64 --led-rows 64 --led-chain 2
 
 ## Panel Test
 
-The panel test cycles colors and displays column and row numbers on all panels,
-one at a time.
+The panel test cycles colors one panel at a time. It also displays the
+column and row numbers for panels according to how they've been wired (not
+necessarily how they've been arranged after-the-fact).
 
 ### Building
 
