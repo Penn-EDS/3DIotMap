@@ -18,6 +18,8 @@ static void interrupt_handler(int signal);
 static void print_usage(const char *prog_name);
 static void transform_coords(vector<City> *all_cities, 
     vector<City> *ref_cities);
+static void set_pixel_remmaped(RGBMatrix *matrix, int x, int y, uint8_t r, 
+    uint8_t g, uint8_t b);
 static vector<City> get_all_cities();
 static vector<City> get_ref_cities(vector<City> *all_cities, string ref_string);
 
@@ -125,13 +127,14 @@ int main(int argc, char *argv[])  {
             COLOR_MIN.b + abs(COLOR_MAX.b - COLOR_MIN.b) * percent : 
             COLOR_MIN.b - abs(COLOR_MAX.b - COLOR_MIN.b) * percent;
 
-        matrix->SetPixel(city.x, city.y, r, g, b);
+        // TODO Check if remapper is "PENN".
+        set_pixel_remmaped(matrix, city.x, city.y, r, g, b);
     }
 
     // Display reference cities in a different color.
     for(const auto& city: ref_cities)
-        matrix->SetPixel(city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, 
-            COLOR_WHITE.b);
+        // TODO Check if remapper is "PENN".
+        set_pixel_remmaped(matrix, city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, COLOR_WHITE.b);
 
     signal(SIGINT, interrupt_handler);
     cout << "Done. Press Ctrl+C to exit." << endl;
@@ -271,4 +274,31 @@ vector<City> get_ref_cities(vector<City> *all_cities, string ref_string) {
 
 static void interrupt_handler(int signal) {
     interrupt_received = true;
+}
+
+// This function is temporary and should only be used for the Penn set up. This 
+// is not how pixels should be remapped; implement the PixelMapper interface 
+// instead. Remapping tests:
+//  (132, 34) -> (93, 36)
+//  (34, 36) -> (164, 61)
+//  (166, 105) -> (22, 70)
+//  (7, 1) -> (129, 88)
+//  (125, 83) -> (44, 29)
+static void set_pixel_remmaped(RGBMatrix *matrix, int x, int y, uint8_t r, 
+    uint8_t g, uint8_t b) {
+
+    // Skip if pixel if pixel is not visible.
+    if (x < 0 || x >= 192 || y < 0 || y >= 128)
+        return;
+
+    int new_x, new_y;
+    if (x < 96) {
+        new_x = y +  128;
+        new_y = 95 - x;
+    } else {
+        new_x = 127 - y;
+        new_y = x - 96;
+    }
+
+    matrix->SetPixel(new_x, new_y, r, g, b);
 }
