@@ -32,17 +32,21 @@ make map-viewer EIGEN="~/Downloads/eigen-3.3.7/"
 
 ### Usage
 
-```bash
+```
 sudo ./map-viewer [options]
 
 Options:
-    --ref-string <str> : Comma-separated reference string with format,
-        "<city1>,<st1>,<x1>,<y1>,<city2>,<st2>,<x2>,<y2>,<city3>,<st3>,<x3>,<y3>"
-        (default="Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51")
-    --led-cols         : Number of columns in one panel (default=32).
-    --led-rows         : Number of rows in one panel (default=32).
-    --led-chain        : Number of daisy-chained panels (default=1).
-    --led-parallel     : Number of parallel chains (range=1..3, default=1).
+    --ref-string, -r : Comma-separated reference string with format,
+                         "<city1>,<st1>,<x1>,<y1>,<city2>,<st2>,<x2>,<y2>,<city3>,<st3>,<x3>,<y3>"
+                         (default="Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51")
+    --led-cols       : Number of columns in one panel (default=32).
+    --led-rows       : Number of rows in one panel (default=32).
+    --led-chain      : Number of daisy-chained panels (default=1).
+    --led-parallel   : Number of parallel chains (range=1..3, default=1).
+
+Flags:
+    --show-ref, -s     : Show reference cities in white.
+    --use-remapper, -m : Use the remapper for the setup at Penn.
 ```
 
 The LED matrix coordinate system has the top left pixel at the origin; the

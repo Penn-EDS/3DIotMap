@@ -33,20 +33,30 @@ int main(int argc, char *argv[])  {
 
     string ref_cities_string = 
         "Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51";
+    bool show_ref_cities = false;
+    bool use_remapper = false;
 
     // Parse command-line options.
     while (true) {
         static struct option long_options[] = {
             {"ref-string", required_argument, 0, 'r'},
+            {"show-ref", no_argument, 0, 's'},
+            {"use-remapper", no_argument, 0, 'm'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
-        int opt = getopt_long(argc, argv, "r:", long_options, &option_index);
+        int opt = getopt_long(argc, argv, "r:sm", long_options, &option_index);
         if (opt == -1)
             break;
         switch (opt) {
             case 'r':
                 ref_cities_string = optarg;
+                break;
+            case 's':
+                show_ref_cities = true;
+                break;
+            case 'm':
+                use_remapper = true;
                 break;
             case '?':
                 print_usage(argv[0]);
@@ -127,19 +137,27 @@ int main(int argc, char *argv[])  {
             COLOR_MIN.b + abs(COLOR_MAX.b - COLOR_MIN.b) * percent : 
             COLOR_MIN.b - abs(COLOR_MAX.b - COLOR_MIN.b) * percent;
 
-        // TODO Check if remapper is "PENN".
-        set_pixel_remmaped(matrix, city.x, city.y, r, g, b);
+        if (use_remapper)
+            set_pixel_remmaped(matrix, city.x, city.y, r, g, b);
+        else
+            matrix->SetPixel(city.x, city.y, r, g, b);
     }
 
     // Display reference cities in a different color.
-    for(const auto& city: ref_cities)
-        // TODO Check if remapper is "PENN".
-        set_pixel_remmaped(matrix, city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, COLOR_WHITE.b);
+    if (show_ref_cities) {
+        for(const auto& city: ref_cities) {
+            if (use_remapper)
+                set_pixel_remmaped(matrix, city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, COLOR_WHITE.b);
+            else
+                matrix->SetPixel(city.x, city.y, COLOR_WHITE.r, COLOR_WHITE.g, COLOR_WHITE.b);
+        }
+    }
 
     signal(SIGINT, interrupt_handler);
     cout << "Done. Press Ctrl+C to exit." << endl;
     do {
-        // Update here.
+        // TODO Update here.
+        sleep(1); // Avoid flickering.
     } while (!interrupt_received);
     cout << endl;
 
@@ -161,20 +179,17 @@ vector<string> tokenize_csv_line(string line) {
 }
 
 static void print_usage(const char *prog_name) {
-    cerr << "Usage: sudo " << prog_name << " [options]" << endl;
-    cerr << "\tDisplays a US COVID-19 heat map. The color of a city depends on "
-        "the number of positive cases of the state it resides in. The number of"
-        " positive cases is mapped from a logarithmic (min_positive_cases..max_"
-        "positive_cases) scale to a linear (yellow..red) scale. The map can be "
-        "transformed by supplying the LED matrix coordinates of three reference"
-        " cities, displayed in white." << endl;
-    cerr << "Options:" << endl;
-    cerr << "\t--ref-string <string> : Comma-separated reference string with fo"
-        "rmat," << endl;
-    cerr << "\t\t\"<city1>,<state1>,<x1>,<y1>,<city2>,<state2>,<x2>,<y2>,<city3"
-        ">,<state3>,<x3>,<y3>\"" << endl;
-    cerr << "\t\t(default=\"Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51\""
-        ")" << endl;
+    cerr <<
+    "Usage: sudo ./map-viewer [options]\n\nOptions:\n\t--ref-string, -r : Comma"
+    "-separated reference string with format, \"<city1>,<st1>,<x1>,<y1>,<city2>"
+    ",<st2>,<x2>,<y2>,<city3>,<st3>,<x3>,<y3>\" (default=\"Olympia,WA,19,4,Augu"
+    "sta,ME,109,10,Austin,TX,60,51\")\n\t--led-cols       : Number of columns i"
+    "n one panel (default=32).\n\t--led-rows       : Number of rows in one pane"
+    "l (default=32).\n\t--led-chain      : Number of daisy-chained panels (defa"
+    "ult=1).\n\t--led-parallel   : Number of parallel chains (range=1..3, defau"
+    "lt=1).\n\nFlags:\n\t--show-ref, -s     : Show reference cities in white.\n"
+    "\t--use-remapper, -m : Use the remapper for the setup at Penn."
+    << endl;
 }
 
 void transform_coords(vector<City> *all_cities, vector<City> *ref_cities) {
