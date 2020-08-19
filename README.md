@@ -52,6 +52,12 @@ Flags:
 The LED matrix coordinate system has the top left pixel at the origin; the
 x-axis points from left to right and the Y axis points from top to bottom.
 
+#### Example (Penn EDS)
+
+```
+sudo ./map-viewer --led-chain 8 --led-parallel 3 --ref-string "Brownsville,TX,100,120,Seattle,WA,18,19,Portland,ME,178,22"
+```
+
 ### Demo
 
 ```bash
