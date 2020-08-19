@@ -61,8 +61,7 @@ sudo ./map-viewer --led-chain 8 --led-parallel 3 --ref-string "Brownsville,TX,10
 ### Demo
 
 ```bash
-sudo ./map-viewer --led-cols 64 --led-rows 64 --led-chain 2
---ref-string "Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51"
+sudo ./map-viewer --led-cols 64 --led-rows 64 --led-chain 2 --ref-string "Olympia,WA,19,4,Augusta,ME,109,10,Austin,TX,60,51"
 ```
 
 ![map viewer demo](img/map-viewer-demo.jpg)
