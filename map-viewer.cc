@@ -20,8 +20,8 @@ static void transform_coords(vector<City> *all_cities,
     vector<City> *ref_cities);
 static void set_pixel_remmaped(RGBMatrix *matrix, int x, int y, uint8_t r, 
     uint8_t g, uint8_t b);
-static vector<City> get_all_cities();
-static vector<City> get_ref_cities(vector<City> *all_cities, string ref_string);
+static vector<City> load_all_cities();
+static vector<City> load_ref_cities(vector<City> *all_cities, string ref_string);
 
 volatile bool interrupt_received = false;
 
@@ -66,16 +66,9 @@ int main(int argc, char *argv[])  {
             }
     }
 
-    cout << "[1/5] Creating all cities. This might take a minute." << endl;
-    vector<City> all_cities = get_all_cities();
-
-    cout << "[2/5] Creating reference cities." << endl;
-    vector<City> ref_cities = get_ref_cities(&all_cities, ref_cities_string);
-
-    cout << "[3/5] Transforming coordinates." << endl;
+    vector<City> all_cities = load_all_cities();
+    vector<City> ref_cities = load_ref_cities(&all_cities, ref_cities_string);
     transform_coords(&all_cities, &ref_cities);
-
-    cout << "[4/5] Reading states stats." << endl;
 
     string line;
     ifstream line_stream("daily.csv");
@@ -108,7 +101,6 @@ int main(int argc, char *argv[])  {
         positive_max = max(positive_max, positive);
     }
 
-    cout << "[5/5] Displaying map." << endl;
     for(const auto& city: all_cities) {
 
         const Color COLOR_MIN = COLOR_YELLOW;
@@ -231,7 +223,7 @@ void transform_coords(vector<City> *all_cities, vector<City> *ref_cities) {
 
 }
 
-vector<City> get_all_cities() {
+vector<City> load_all_cities() {
     vector<City> cities;
     string line;
     ifstream line_stream("uscities.csv");
@@ -252,12 +244,12 @@ vector<City> get_all_cities() {
         float lat = atof(tokens[8].c_str());
 
         City new_city(name, state, lng, lat);
-        cities.insert(cities.begin(), new_city);
+        cities.push_back(new_city);
     }
     return cities;
 }
 
-vector<City> get_ref_cities(vector<City> *all_cities, string ref_string) {
+vector<City> load_ref_cities(vector<City> *all_cities, string ref_string) {
     vector<City> ref_cities;
     const int N_REF_CITIES = 3;
 
@@ -280,7 +272,7 @@ vector<City> get_ref_cities(vector<City> *all_cities, string ref_string) {
                 continue;
             
             City new_city((*it).name, (*it).state, (*it).lng, (*it).lat, x, y);
-            ref_cities.insert(ref_cities.begin(), new_city);
+            ref_cities.push_back(new_city);
         }
     }
 
